@@ -1,10 +1,14 @@
+/************************************************
+    Fetch API 
+*************************************************/
+//use the fetch api to get 12 random users that are from nationality US
+//use catch to display any error to the console
 async function getRandomUsers() {
   await fetch("https://randomuser.me/api/?results=12&nat=us")
     .then(response => response.json())
     .then(data => {
+      //pass the results from the data to the searchBar function
       searchBar(data.results);
-      //   getUsers(data.results);
-      return data;
     })
     .catch(err =>
       console.log(
@@ -13,30 +17,37 @@ async function getRandomUsers() {
       )
     );
 }
+//initialize the fetch getRandomUsers function
 getRandomUsers();
 
+/************************************************
+    Search Bar 
+*************************************************/
 const searchBar = data => {
+  //Create the HTML for the searchBar
   const searchContainer = document.querySelector(".search-container");
-  searchContainer.innerHTML = `<form action="#" method="get">
-                            <input type="search" id="search-input" class="search-input" placeholder="Search...">
-                            <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
-                        </form>`;
+  searchContainer.innerHTML = `
+    <form action="#" method="get">
+        <input type="search" id="search-input" class="search-input" placeholder="Search...">
+        <input type="submit" value="&#x1F50D;" id="search-submit" class="search-submit">
+    </form>`;
   const searchSubmit = document.querySelector("#search-submit");
   const searchInput = document.querySelector("#search-input");
+  //if no search input then display the entire data into getUsers
   getUsers(data);
   searchSubmit.addEventListener("click", e => {
-    e.preventDefault();
-
-    console.log(e.target);
+    //if there is input search value then filter the results with the data
     let filterData = data.filter(el =>
       el.name.first.includes(searchInput.value.toLowerCase())
     );
+    //pass the filterData into getUsers to display the new data
+    getUsers(filterData);
 
+    //if there is a error message being display on screen remove it
     if (document.querySelector(".errorMessage")) {
       document.querySelector(".errorMessage").remove();
     }
-    console.log(filterData);
-    getUsers(filterData);
+    //if search value is not found display search error
     if (filterData.length === 0) {
       const errorMessage = document.createElement("h2");
       errorMessage.className = "errorMessage";
@@ -47,8 +58,11 @@ const searchBar = data => {
     }
   });
 };
-
+/************************************************
+    Get User Data
+*************************************************/
 const getUsers = data => {
+  //map through the provided data passed from the seachBar to create the user cards
   const userList = data.map(user => {
     return `<div class="card">
         <div class="card-img-container">
@@ -67,45 +81,62 @@ const getUsers = data => {
         </div>
     </div>`;
   });
+  //append the userList to the gallery div
   const gallery = document.querySelector("#gallery");
   gallery.innerHTML = userList.join("");
   const cards = document.querySelectorAll(".card");
+  //pass the cards and data from the searchBar for the click event
   cardsModalHandle(cards, data);
 };
-
+/************************************************
+    Build User Cards
+*************************************************/
 const cardsModalHandle = (cards, data) => {
+  //each card get a click event to display the modal
   cards.forEach(card =>
     card.addEventListener("click", e => {
       const person = data.filter(
         user => user.email === card.children[1].children[1].innerHTML
       );
-
-      console.log(person);
+      //filter to find the clicked card div that matches the same email with the data passed from the search bar
+      //pass the data to create the modal div that was clicked
       modalDiv(person[0], data);
     })
   );
 };
 
+/************************************************
+    Event Handlers For Modal
+*************************************************/
 const closeModalHandler = (closeModalBtn, div) =>
-  closeModalBtn.addEventListener("click", e => {
+  //when the X is clicked inside the modal remove the div from being displayed
+  closeModalBtn.addEventListener("click", () => {
     div.remove();
   });
 
 const prevModalHandler = (data, div, currentModalIndex) => {
+  //click event function being triggered from inside the modalDiv
   if (currentModalIndex > 0) {
     div.remove();
+    //get the current modalIndex and pass the previous modalIndex to be display
     modalDiv(data[currentModalIndex - 1], data);
   }
 };
 
 const nextModalHandler = (data, div, currentModalIndex) => {
+  //click event function being triggered from inside the modalDiv
   if (currentModalIndex < data.length - 1) {
     div.remove();
+    //get the current modalIndex and pass the next modalIndex to be display
     modalDiv(data[currentModalIndex + 1], data);
   }
 };
 
+/************************************************
+    Create Modal Div
+*************************************************/
 const modalDiv = (person, data) => {
+  //Create the div with the HTML for the modal and display the current person data into the modal information
   const div = document.createElement("div");
   let dob = new Date(person.dob.date);
   div.innerHTML = `<div class="modal-container">
@@ -134,24 +165,21 @@ const modalDiv = (person, data) => {
                 </div>
       </div>`;
   document.body.append(div);
-  const email = document.querySelector("#email");
-  console.log(email);
-  let currentModalIndex = data.findIndex(el => el.email === email.innerHTML);
-  console.log(currentModalIndex);
+  //pass the modal information to activate the click event when the modal closed button is clicked
   const modalContainer = document.querySelector(".modal-container");
-
   const closeModalBtn = document.querySelector(".modal-close-btn");
-
   closeModalHandler(closeModalBtn, modalContainer);
 
+  //get the email to filter the current modal index
+  const email = document.querySelector("#email");
+  let currentModalIndex = data.findIndex(el => el.email === email.innerHTML);
   const prevModalBtn = document.querySelector("#modal-prev");
-  prevModalBtn.addEventListener("click", e => {
-    console.log(e.target);
+  //pass the searchBar data, the modal container, and the current modal index withing the filtered data to both the prevModalBtn and nextModalBtn to activate next and previous modal for the users
+  prevModalBtn.addEventListener("click", () => {
     prevModalHandler(data, modalContainer, currentModalIndex);
   });
   const nextModalBtn = document.querySelector("#modal-next");
-  nextModalBtn.addEventListener("click", e => {
-    console.log(e.target);
+  nextModalBtn.addEventListener("click", () => {
     nextModalHandler(data, modalContainer, currentModalIndex);
   });
 };
