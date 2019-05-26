@@ -265,8 +265,10 @@ header h1 {
 }
 
 .card:hover {
+  font-size: 1.1rem;
   padding: 11px;
   background-color: skyblue;
+  box-shadow: 1px 3px;
 }
 
 .errorMessage {
